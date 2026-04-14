@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  CREATOR
+  ADMIN
+}
+
+enum TaskType {
+  FOLLOW
+  LIKE
+  REPOST
+  QUOTE
+  POST
+}
+
+enum TaskStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TransactionType {
+  EARNING
+  WITHDRAWAL
+  DEPOSIT
+  REFUND
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SENT
+  FAILED
+}
+
+// User model
+model User {
+  id                  String @id @default(cuid())
+  username            String @unique
+  email               String @unique
+  passwordHash        String
+  role                UserRole @default(USER)
+  xHandle             String? @unique
+  isPremiumAccount    Boolean @default(false)
+  walletBalance       Float @default(0)
+  totalEarned         Float @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+  isActive            Boolean @default(true)
+  isSuspended         Boolean @default(false)
+  verificationHash    String?
+  isEmailVerified     Boolean @default(false)
+  avatarUrl           String?
+  bio                 String?
+
+  // Relations
+  createdTasks        Task[]
+  taskSubmissions     TaskSubmission[]
+  transactions        Transaction[]
+  withdrawals         Withdrawal[]
+  referredBy          User? @relation("Referrals", fields: [referralCodeUsedId], references: [id])
+  referralCodeUsedId  String?
+  referrals           User[] @relation("Referrals")
+  premiumRequests     PremiumRequest[]
+  auditLogs           AuditLog[]
+
+  @@index([email])
+  @@index([xHandle])
+  @@index([createdAt])
+}
+
+// Task model
+model Task {
+  id              String @id @default(cuid())
+  creatorId       String
+  creator         User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  type            TaskType
+  title           String
+  description     String
+  imageUrl        String?
+  rewardPerTask   Float
+  totalBudget     Float
+  remainingBudget Float
+  isPremium       Boolean @default(false)
+  status          TaskStatus @default(ACTIVE)
+  maxSubmissions  Int @default(100)
+  currentSubmissions Int @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  completedAt     DateTime?
+  proofRequired   String? // URL, screenshot, etc.
+  platformFeeApplied Float @default(0)
+  
+  // Relations
+  submissions     TaskSubmission[]
+  auditLogs       AuditLog[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([type])
+  @@index([isPremium])
+  @@index([createdAt])
+}
+
+// TaskSubmission model
+model TaskSubmission {
+  id        String @id @default(cuid())
+  taskId    String
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proof     String // URL/link to proof
+  status    SubmissionStatus @default(PENDING)
+  reward    Float
+  rejectionReason String?
+  submittedAt DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedBy String? // Admin ID who reviewed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@unique([taskId, userId]) // One submission per user per task
+}
+
+// Transaction model
+model Transaction {
+  id        String @id @default(cuid())
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  type      TransactionType
+  status    String @default("completed") // completed, pending, failed
+  description String?
+  txHash    String? // For blockchain transactions
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// Withdrawal model
+model Withdrawal {
+  id            String @id @default(cuid())
+  userId        String
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Float
+  walletAddress String
+  status        WithdrawalStatus @default(PENDING)
+  txHash        String?
+  failureReason String?
+  createdAt     DateTime @default(now())
+  approvedAt    DateTime?
+  processedAt   DateTime?
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Premium Request model (for user to request premium status)
+model PremiumRequest {
+  id        String @id @default(cuid())
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xHandle   String
+  followerCount Int?
+  engagement Float? // engagement rate
+  verificationProof String? // link to profile or screenshot
+  status    String @default("pending") // pending, approved, rejected
+  reviewedBy String?
+  rejectionReason String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// AuditLog model for admin tracking
+model AuditLog {
+  id        String @id @default(cuid())
+  action    String
+  tableName String
+  recordId  String?
+  userId    String?
+  user      User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  taskId    String?
+  task      Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  oldValue  String?
+  newValue  String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tableName])
+  @@index([createdAt])
+}
+
+// Analytics model for dashboard
+model Analytics {
+  id              String @id @default(cuid())
+  date            DateTime @default(now())
+  totalUsers      Int
+  totalTasks      Int
+  completedTasks  Int
+  totalEarnings   Float
+  totalRevenue    Float
+  platformFees    Float
+  activeCreators  Int
+  updatedAt       DateTime @updatedAt
+
+  @@index([date])
+}
