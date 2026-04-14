@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useWalletStore } from '@/lib/store';
-import { walletApi, taskApi } from '@/lib/api';
+import { walletApi } from '@/lib/api';
 import Navbar from '@/components/Navbar';
 import { DollarSign, TrendingUp, CheckCircle } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { balance, totalEarned, setBalance, setTotalEarned } = useWalletStore();
+  const { setBalance, setTotalEarned } = useWalletStore();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ balance: 0, totalEarned: 0, completed: 0 });
 
@@ -41,6 +41,16 @@ export default function DashboardPage() {
   }, [user, router, setBalance, setTotalEarned]);
 
   if (!user) return null;
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-dark flex items-center justify-center">
+          <div className="text-white text-lg">Loading dashboard...</div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

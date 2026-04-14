@@ -1,9 +1,6 @@
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "extends": "next/tsconfig"
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Your Next.js configuration options here
 }
+
+module.exports = nextConfig

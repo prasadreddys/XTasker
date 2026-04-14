@@ -11,7 +11,6 @@ export default function TaskDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuthStore();
-  const [task, setTask] = useState<any>(null);
   const [proofUrl, setProofUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

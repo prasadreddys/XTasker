@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { adminApi } from '@/lib/api';
 import Navbar from '@/components/Navbar';
-import { CheckCircle, Clock, XCircle, Copy } from 'lucide-react';
+import { CheckCircle, XCircle, Copy } from 'lucide-react';
 
 interface Withdrawal {
   id: string;

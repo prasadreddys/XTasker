@@ -1,5 +1,10 @@
-import { ethersSigner } from './blockchain';
+import { ethers } from 'ethers';
 import { prisma } from './database';
+
+// Create ethers signer
+const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL || 'https://mainnet.base.org');
+const wallet = new ethers.Wallet(process.env.VITE_PRIVATE_KEY!, provider);
+export const ethersSigner = wallet;
 
 export async function processWithdrawal(withdrawalId: string) {
   try {

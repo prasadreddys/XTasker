@@ -2,11 +2,10 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 export const generateToken = (userId: string, role: string) => {
-  return jwt.sign(
-    { userId, role },
-    process.env.JWT_SECRET!,
-    { expiresIn: process.env.JWT_EXPIRATION || '7d' }
-  );
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not set');
+  const options = { expiresIn: '7d' as const };
+  return jwt.sign({ userId, role }, Buffer.from(secret), options);
 };
 
 export const hashPassword = async (password: string) => {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { taskApi } from '@/lib/api';
 import Navbar from '@/components/Navbar';
-import { Filter, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -51,13 +51,7 @@ export default function TasksPage() {
   };
 
   const taskTypes = ['FOLLOW', 'LIKE', 'REPOST', 'QUOTE', 'POST'];
-  const rewardMultiplier = {
-    FOLLOW: 0.5,
-    LIKE: 0.25,
-    REPOST: 1.0,
-    QUOTE: 2.0,
-    POST: 3.0,
-  };
+
 
   if (!user) return null;
 

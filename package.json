@@ -1,0 +1,12 @@
+{
+  "name": "xtasker",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev": "npm --prefix frontend run dev"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}

@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({

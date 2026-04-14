@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
